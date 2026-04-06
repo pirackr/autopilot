@@ -1,5 +1,5 @@
 import type { Plugin } from "@opencode-ai/plugin"
-import { Enforcer } from "./enforcer"
+import { Enforcer } from "./autopilot/enforcer"
 
 const AutopilotPlugin: Plugin = async (ctx) => {
   const enforcer = new Enforcer(ctx)

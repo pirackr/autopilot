@@ -1,38 +1,45 @@
 # Marketplace
 
-This repository now uses a top-level `obra/superpowers`-style layout instead of keeping platform assets nested inside `plugins/autopilot/`.
+This repository is an OpenCode-only home for the `autopilot` plugin and its `/autopilot` command.
 
-The current implemented capability is `autopilot`: command wrappers plus an OpenCode plugin that re-prompts the agent when it goes idle with incomplete tasks remaining.
+`autopilot` re-prompts the agent when a session goes idle while incomplete work remains.
 
 ## Layout
 
 ```text
 .
-  .claude/
-    commands/
+  opencode.json
   .opencode/
     commands/
+    package.json
     plugins/
-  agents/
-  commands/
-  docs/
-  hooks/
-  scripts/
-  skills/
-  tests/
   AGENTS.md
-  CLAUDE.md
   README.md
 ```
 
-## Current Components
+## Components
 
-- OpenCode plugin: `.opencode/plugins/autopilot/`
+- Project config: `opencode.json`
+- OpenCode plugin entry: `.opencode/plugins/autopilot.ts`
+- OpenCode plugin sources: `.opencode/plugins/autopilot/`
 - OpenCode command: `.opencode/commands/autopilot.md`
-- Claude command: `.claude/commands/autopilot.md`
-- Autopilot skill: `skills/autopilot/SKILL.md`
 
-## Notes
+## Active Plan State
 
-- This is now a generic framework-style repo shape; repository/package renaming can happen later without another layout migration.
-- The existing OpenCode plugin source remains under the `autopilot` name until that rename happens.
+The plugin looks for an active plan marker at:
+
+```text
+~/.config/opencode/autopilot/active-plan
+```
+
+Set `AUTOPILOT_STATE_DIR` to override that location.
+
+## Command Registration
+
+`/autopilot` is registered as a per-project OpenCode command by `.opencode/commands/autopilot.md`.
+
+## Why This Structure
+
+- `opencode.json` lives at the repository root because that is the standard per-project OpenCode config location.
+- `.opencode/plugins/*.ts` is the standard autoloaded project plugin directory, so `autopilot` uses a top-level plugin entry file there.
+- `.opencode/package.json` remains the right place for local plugin dependencies used by files under `.opencode/plugins/`.
