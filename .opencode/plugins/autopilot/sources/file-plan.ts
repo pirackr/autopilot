@@ -3,7 +3,7 @@ import { join } from "node:path"
 import type { IncompleteResult, TodoSource } from "./types"
 
 const STATE_DIR = process.env.AUTOPILOT_STATE_DIR
-  ?? join(process.env.HOME ?? "", ".claude", "autopilot-state")
+  ?? join(process.env.HOME ?? "", ".config", "opencode", "autopilot")
 const STATE_FILE = join(STATE_DIR, "active-plan")
 
 const UNCHECKED_RE = /^\s*- \[ \]/gm
