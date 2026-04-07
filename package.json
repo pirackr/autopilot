@@ -4,6 +4,8 @@
   "type": "module",
   "main": ".opencode/plugins/autopilot.ts",
   "files": [
+    "commands",
+    "scripts",
     ".opencode/plugins",
     ".opencode/commands",
     "README.md",
@@ -14,6 +16,8 @@
     "@opencode-ai/plugin": "1.3.17"
   },
   "scripts": {
+    "prepare": "node ./scripts/install-commands.mjs",
+    "postinstall": "node ./scripts/install-commands.mjs",
     "test": "bun test"
   }
 }
