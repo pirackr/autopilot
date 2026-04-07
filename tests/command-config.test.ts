@@ -37,6 +37,7 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
 test("registerAutopilotCommands resolves model and prompt for role commands", () => {
   const config = {
     command: {},
+    agent: {},
     autopilot: {
       subscription: "free",
       agents: {
@@ -46,6 +47,7 @@ test("registerAutopilotCommands resolves model and prompt for role commands", ()
       },
     },
   } as Config & {
+    agent: Record<string, { model?: string; prompt?: string }>
     autopilot: {
       subscription: string
       agents: {
@@ -58,10 +60,12 @@ test("registerAutopilotCommands resolves model and prompt for role commands", ()
 
   registerAutopilotCommands(config)
 
-  expect(config.command?.["autopilot-implementer"]?.template).toContain(
-    "Use the resolved model `openai/gpt-5.4`.",
+  expect(config.command?.["autopilot-implementer"]?.agent).toBe(
+    "autopilot-implementer",
   )
-  expect(config.command?.["autopilot-implementer"]?.template).toContain(
+  expect(config.command?.["autopilot-implementer"]?.model).toBe("openai/gpt-5.4")
+  expect(config.agent?.["autopilot-implementer"]?.model).toBe("openai/gpt-5.4")
+  expect(config.agent?.["autopilot-implementer"]?.prompt).toBe(
     "You are the autopilot implementer. Once scope is clear, execute code changes end-to-end with minimal churn and verify your work.",
   )
 })
