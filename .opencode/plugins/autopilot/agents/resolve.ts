@@ -1,4 +1,5 @@
 import { getDefaultAgentDefinitions } from "./defaults"
+import { buildAutopilotAgentPrompt } from "./prompt-builders"
 import { AUTOPILOT_SUBSCRIPTION_PRESETS } from "./presets"
 import type {
   AutopilotAgentID,
@@ -32,13 +33,23 @@ export function resolveAutopilotAgentConfig(
       const base = defaults[id]
       const presetOverride = preset?.[id] ?? {}
       const userOverride = settings.agents?.[id] ?? {}
+      const resolvedDefinition = {
+        ...base,
+        ...presetOverride,
+        ...userOverride,
+      }
 
       return [
         id,
         {
-          ...base,
-          ...presetOverride,
-          ...userOverride,
+          ...resolvedDefinition,
+          prompt:
+            userOverride.prompt ??
+            buildAutopilotAgentPrompt({
+              role: id,
+              model: resolvedDefinition.model,
+              costTier: resolvedDefinition.costTier,
+            }),
           subscriptionSource: presetName ?? "default",
         },
       ]
