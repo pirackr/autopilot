@@ -1,8 +1,14 @@
 import { readFileSync } from "node:fs"
 import type { Config } from "@opencode-ai/plugin"
 
-const COMMAND_FILE = new URL("../../commands/autopilot.md", import.meta.url)
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/
+const AUTOPILOT_COMMAND_FILES = {
+  autopilot: "autopilot.md",
+  "autopilot-orchestrator": "autopilot-orchestrator.md",
+  "autopilot-implementer": "autopilot-implementer.md",
+  "autopilot-research": "autopilot-research.md",
+  "autopilot-planner": "autopilot-planner.md",
+} as const
 
 type CommandDefinition = {
   description?: string
@@ -29,8 +35,8 @@ function parseFrontmatter(frontmatter: string): Record<string, string> {
   return Object.fromEntries(entries)
 }
 
-export function loadAutopilotCommandDefinition(): CommandDefinition {
-  const file = readFileSync(COMMAND_FILE, "utf8")
+function loadCommandDefinition(fileName: string): CommandDefinition {
+  const file = readFileSync(new URL(`../../commands/${fileName}`, import.meta.url), "utf8")
   const match = file.match(FRONTMATTER_RE)
 
   if (!match) {
@@ -46,10 +52,19 @@ export function loadAutopilotCommandDefinition(): CommandDefinition {
   }
 }
 
-export function registerAutopilotCommand(config: Config): void {
+export function loadAutopilotCommandDefinition(): CommandDefinition {
+  return loadCommandDefinition(AUTOPILOT_COMMAND_FILES.autopilot)
+}
+
+export function registerAutopilotCommands(config: Config): void {
   config.command ??= {}
 
-  if (config.command.autopilot) return
+  for (const [commandName, fileName] of Object.entries(AUTOPILOT_COMMAND_FILES)) {
+    if (config.command[commandName]) continue
+    config.command[commandName] = loadCommandDefinition(fileName)
+  }
+}
 
-  config.command.autopilot = loadAutopilotCommandDefinition()
+export function registerAutopilotCommand(config: Config): void {
+  registerAutopilotCommands(config)
 }
