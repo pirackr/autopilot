@@ -37,4 +37,24 @@ describe("buildAutopilotAgentPrompt", () => {
     expect(prompt).toContain("<Operating_Bias>")
     expect(prompt).toContain("Keep the workflow lightweight and search-first")
   })
+
+  test("uses the claude-family orchestrator variant when available", () => {
+    const prompt = buildAutopilotAgentPrompt({
+      role: "orchestrator",
+      model: "anthropic/claude-sonnet-4-6",
+      costTier: "expensive",
+    })
+
+    expect(prompt).toContain("Reason carefully about routing and delegation tradeoffs")
+  })
+
+  test("prefers a cheap-tier planner fallback for unknown cheap models", () => {
+    const prompt = buildAutopilotAgentPrompt({
+      role: "planner",
+      model: "unknown/custom-model",
+      costTier: "cheap",
+    })
+
+    expect(prompt).toContain("Keep the plan lean and focused on immediate execution")
+  })
 })
