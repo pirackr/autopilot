@@ -12,6 +12,10 @@ test("installCommands copies packaged commands into the OpenCode config director
   mkdirSync(sourceDir, { recursive: true })
   writeFileSync(join(sourceDir, "init-deep.md"), "# /init-deep\n")
   writeFileSync(join(sourceDir, "autopilot.md"), "# /autopilot\n")
+  writeFileSync(join(sourceDir, "autopilot-orchestrator.md"), "# /autopilot-orchestrator\n")
+  writeFileSync(join(sourceDir, "autopilot-implementer.md"), "# /autopilot-implementer\n")
+  writeFileSync(join(sourceDir, "autopilot-research.md"), "# /autopilot-research\n")
+  writeFileSync(join(sourceDir, "autopilot-planner.md"), "# /autopilot-planner\n")
 
   installCommands({ sourceDir, targetDir })
 
@@ -20,5 +24,8 @@ test("installCommands copies packaged commands into the OpenCode config director
   )
   expect(readFileSync(join(targetDir, "commands", "autopilot.md"), "utf8")).toBe(
     "# /autopilot\n",
+  )
+  expect(readFileSync(join(targetDir, "commands", "autopilot-planner.md"), "utf8")).toBe(
+    "# /autopilot-planner\n",
   )
 })
