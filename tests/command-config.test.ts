@@ -66,6 +66,6 @@ test("registerAutopilotCommands resolves model and prompt for role commands", ()
   expect(config.command?.["autopilot-implementer"]?.model).toBe("openai/gpt-5.4")
   expect(config.agent?.["autopilot-implementer"]?.model).toBe("openai/gpt-5.4")
   expect(config.agent?.["autopilot-implementer"]?.prompt).toBe(
-    "You are the autopilot implementer. Once scope is clear, execute code changes end-to-end with minimal churn and verify your work.",
+    "You are the autopilot implementer. Once scope is clear, explore enough context to act confidently, then execute code changes end-to-end with minimal churn. Prefer the smallest correct change, follow existing patterns, and verify your work before claiming completion. Do not expand scope with speculative refactors unless the task requires them.",
   )
 })
