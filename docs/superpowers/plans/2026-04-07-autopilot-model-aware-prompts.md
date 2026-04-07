@@ -16,7 +16,7 @@
 - Create: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-prompts.test.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-prompts.test.ts`
 
-- [ ] **Step 1: Write the failing prompt builder test file**
+- [x] **Step 1: Write the failing prompt builder test file**
 
 ```ts
 import { describe, expect, test } from "bun:test"
@@ -61,12 +61,12 @@ describe("buildAutopilotAgentPrompt", () => {
 })
 ```
 
-- [ ] **Step 2: Run the new test to verify it fails**
+- [x] **Step 2: Run the new test to verify it fails**
 
 Run: `bun test tests/agent-prompts.test.ts`
 Expected: FAIL with module-not-found errors for `.opencode/plugins/autopilot/agents/prompt-builders`
 
-- [ ] **Step 3: Commit the failing test**
+- [x] **Step 3: Commit the failing test**
 
 ```bash
 git add tests/agent-prompts.test.ts
@@ -81,7 +81,7 @@ git commit -m "test: add model-aware prompt builder coverage"
 - Create: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/.opencode/plugins/autopilot/agents/prompt-builders.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-prompts.test.ts`
 
-- [ ] **Step 1: Add the shared prompt types**
+- [x] **Step 1: Add the shared prompt types**
 
 ```ts
 import type { AutopilotAgentID, CostTier } from "./types"
@@ -108,7 +108,7 @@ export type AutopilotPromptSectionSet = {
 }
 ```
 
-- [ ] **Step 2: Add shared prompt-formatting helpers**
+- [x] **Step 2: Add shared prompt-formatting helpers**
 
 ```ts
 import type { AutopilotPromptSectionSet } from "./prompt-types"
@@ -133,7 +133,7 @@ export function formatPromptSections(sections: AutopilotPromptSectionSet): strin
 }
 ```
 
-- [ ] **Step 3: Add model family detection and a temporary role builder**
+- [x] **Step 3: Add model family detection and a temporary role builder**
 
 ```ts
 import { formatPromptSections } from "./prompt-shared"
@@ -184,12 +184,12 @@ export function buildAutopilotAgentPrompt(ctx: AutopilotPromptVariantContext): s
 }
 ```
 
-- [ ] **Step 4: Run the prompt builder tests to verify they pass**
+- [x] **Step 4: Run the prompt builder tests to verify they pass**
 
 Run: `bun test tests/agent-prompts.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit the prompt builder foundation**
+- [x] **Step 5: Commit the prompt builder foundation**
 
 ```bash
 git add .opencode/plugins/autopilot/agents/prompt-types.ts .opencode/plugins/autopilot/agents/prompt-shared.ts .opencode/plugins/autopilot/agents/prompt-builders.ts tests/agent-prompts.test.ts
@@ -203,7 +203,7 @@ git commit -m "feat: add autopilot prompt builder foundation"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/.opencode/plugins/autopilot/agents/prompt-builders.ts`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-prompts.test.ts`
 
-- [ ] **Step 1: Extend the prompt builder test to cover family and cost-tier fallback**
+- [x] **Step 1: Extend the prompt builder test to cover family and cost-tier fallback**
 
 ```ts
   test("uses the claude-family orchestrator variant when available", () => {
@@ -227,12 +227,12 @@ git commit -m "feat: add autopilot prompt builder foundation"
   })
 ```
 
-- [ ] **Step 2: Run the updated test to verify it fails**
+- [x] **Step 2: Run the updated test to verify it fails**
 
 Run: `bun test tests/agent-prompts.test.ts`
 Expected: FAIL because the current builder does not have role-specific family and cost-tier variants
 
-- [ ] **Step 3: Add role-first prompt variants**
+- [x] **Step 3: Add role-first prompt variants**
 
 ```ts
 import type { AutopilotAgentID, CostTier } from "./types"
@@ -309,7 +309,7 @@ export const AUTOPILOT_PROMPT_VARIANTS: Record<AutopilotAgentID, RolePromptVaria
 }
 ```
 
-- [ ] **Step 4: Update the builder to merge role default, family variant, and cost-tier fallback**
+- [x] **Step 4: Update the builder to merge role default, family variant, and cost-tier fallback**
 
 ```ts
 import { AUTOPILOT_PROMPT_VARIANTS } from "./prompt-variants"
@@ -339,12 +339,12 @@ export function buildAutopilotAgentPrompt(ctx: AutopilotPromptVariantContext): s
 }
 ```
 
-- [ ] **Step 5: Run the prompt builder tests to verify they pass**
+- [x] **Step 5: Run the prompt builder tests to verify they pass**
 
 Run: `bun test tests/agent-prompts.test.ts`
 Expected: PASS
 
-- [ ] **Step 6: Commit the role variant builders**
+- [x] **Step 6: Commit the role variant builders**
 
 ```bash
 git add .opencode/plugins/autopilot/agents/prompt-variants.ts .opencode/plugins/autopilot/agents/prompt-builders.ts tests/agent-prompts.test.ts
@@ -359,7 +359,7 @@ git commit -m "feat: add model-aware autopilot prompt variants"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/.opencode/plugins/autopilot/agents/resolve.ts`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-config.test.ts`
 
-- [ ] **Step 1: Extend the resolver test for builder output and explicit prompt override precedence**
+- [x] **Step 1: Extend the resolver test for builder output and explicit prompt override precedence**
 
 ```ts
   test("recomputes prompts from the resolved model when no explicit prompt override is provided", () => {
@@ -388,12 +388,12 @@ git commit -m "feat: add model-aware autopilot prompt variants"
   })
 ```
 
-- [ ] **Step 2: Run the resolver test to verify it fails**
+- [x] **Step 2: Run the resolver test to verify it fails**
 
 Run: `bun test tests/agent-config.test.ts`
 Expected: FAIL because defaults and resolver still rely on static prompt constants
 
-- [ ] **Step 3: Turn `prompts.ts` into a thin compatibility layer over the builders**
+- [x] **Step 3: Turn `prompts.ts` into a thin compatibility layer over the builders**
 
 ```ts
 import { buildAutopilotAgentPrompt } from "./prompt-builders"
@@ -422,7 +422,7 @@ export const AUTOPILOT_AGENT_PROMPTS = {
 } as const
 ```
 
-- [ ] **Step 4: Update the resolver to rebuild prompts from the resolved model and cost tier unless `prompt` is explicitly overridden**
+- [x] **Step 4: Update the resolver to rebuild prompts from the resolved model and cost tier unless `prompt` is explicitly overridden**
 
 ```ts
 import { buildAutopilotAgentPrompt } from "./prompt-builders"
@@ -449,12 +449,12 @@ import { buildAutopilotAgentPrompt } from "./prompt-builders"
       ]
 ```
 
-- [ ] **Step 5: Run the resolver and builder tests to verify they pass**
+- [x] **Step 5: Run the resolver and builder tests to verify they pass**
 
 Run: `bun test tests/agent-prompts.test.ts tests/agent-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 6: Commit the resolver integration**
+- [x] **Step 6: Commit the resolver integration**
 
 ```bash
 git add .opencode/plugins/autopilot/agents/prompts.ts .opencode/plugins/autopilot/agents/defaults.ts .opencode/plugins/autopilot/agents/resolve.ts tests/agent-config.test.ts tests/agent-prompts.test.ts
@@ -467,7 +467,7 @@ git commit -m "feat: resolve autopilot prompts from model-aware builders"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/command-config.test.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/command-config.test.ts`
 
-- [ ] **Step 1: Extend the command registration test for model-family prompt output**
+- [x] **Step 1: Extend the command registration test for model-family prompt output**
 
 ```ts
   expect(config.agent?.["autopilot-implementer"]?.prompt).toContain("<Role>")
@@ -479,12 +479,12 @@ git commit -m "feat: resolve autopilot prompts from model-aware builders"
   )
 ```
 
-- [ ] **Step 2: Run the command registration test**
+- [x] **Step 2: Run the command registration test**
 
 Run: `bun test tests/command-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 3: Commit the command verification update**
+- [x] **Step 3: Commit the command verification update**
 
 ```bash
 git add tests/command-config.test.ts
@@ -498,12 +498,12 @@ git commit -m "test: verify model-aware prompt command wiring"
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/agent-config.test.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/.worktrees/autopilot-agent-roster/tests/command-config.test.ts`
 
-- [ ] **Step 1: Run the full test suite**
+- [x] **Step 1: Run the full test suite**
 
 Run: `bun test`
 Expected: PASS
 
-- [ ] **Step 2: Commit the final verification if any follow-up test-only edits were needed**
+- [x] **Step 2: Commit the final verification if any follow-up test-only edits were needed**
 
 ```bash
 git status --short
