@@ -13,6 +13,7 @@ const CONTINUATION_PROMPT = `Incomplete tasks remain. Continue working on the ne
 - Do not stop until all tasks are done`
 
 interface SessionState {
+  autopilotActive?: boolean
   abortDetectedAt?: number
   compacting?: boolean
   tokensSinceCompaction: number
@@ -47,10 +48,19 @@ export class Enforcer {
   }
 
   private getSources(sessionID: string): TodoSource[] {
-    return [
-      new FilePlanSource(),
-      new SessionTodoSource(this.ctx, sessionID),
-    ]
+    const state = this.getState(sessionID)
+    const sources: TodoSource[] = [new FilePlanSource()]
+
+    if (state.autopilotActive) {
+      sources.push(new SessionTodoSource(this.ctx, sessionID))
+    }
+
+    return sources
+  }
+
+  markAutopilotActive(sessionID: string): void {
+    const state = this.getState(sessionID)
+    state.autopilotActive = true
   }
 
   async onIdle(sessionID: string): Promise<void> {

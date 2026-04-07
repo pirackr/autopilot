@@ -88,3 +88,26 @@ test("Enforcer resets token tracking after compaction", async () => {
 
   expect(ctx.client.session.summarize).toHaveBeenCalledTimes(2)
 })
+
+test("Enforcer does not inject continuation prompts for ordinary sessions with todos", async () => {
+  const prompt = mock(async () => true)
+  const todo = mock(async () => [
+    { id: "todo-1", content: "pending", status: "pending", priority: "high" },
+  ])
+
+  const ctx = {
+    directory: "/workspace",
+    client: {
+      session: {
+        prompt,
+        todo,
+        summarize: mock(async () => true),
+      },
+    },
+  } as unknown as PluginInput
+
+  const enforcer = new Enforcer(ctx)
+  await enforcer.onIdle("session-1")
+
+  expect(prompt).not.toHaveBeenCalled()
+})

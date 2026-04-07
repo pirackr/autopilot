@@ -2,6 +2,35 @@ import type { Message, Plugin } from "@opencode-ai/plugin"
 import { Enforcer } from "./autopilot/enforcer"
 import { registerAutopilotCommand } from "./autopilot/command"
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+function getCommandName(props: Record<string, unknown> | undefined): string | undefined {
+  if (!props) return undefined
+
+  const info = isRecord(props.info) ? props.info : undefined
+  const directCommand = isRecord(props.command) ? props.command : undefined
+  const infoCommand = isRecord(info?.command) ? info.command : undefined
+
+  const candidates = [
+    props.commandName,
+    directCommand?.name,
+    directCommand?.id,
+    info?.commandName,
+    infoCommand?.name,
+    infoCommand?.id,
+  ]
+
+  return candidates.find(
+    (value): value is string => typeof value === "string" && value.length > 0,
+  )
+}
+
+function isAutopilotCommand(commandName: string | undefined): boolean {
+  return commandName === "autopilot" || commandName?.startsWith("autopilot-") === true
+}
+
 export const AutopilotPlugin: Plugin = async (ctx) => {
   const enforcer = new Enforcer(ctx)
 
@@ -15,6 +44,10 @@ export const AutopilotPlugin: Plugin = async (ctx) => {
         props?.sessionID ??
         (props?.info as Record<string, unknown> | undefined)?.sessionID
       ) as string | undefined
+
+      if (sessionID && isAutopilotCommand(getCommandName(props))) {
+        enforcer.markAutopilotActive(sessionID)
+      }
 
       if (event.type === "session.idle") {
         if (!sessionID) return

@@ -16,7 +16,7 @@
 - Create: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/agent-config.test.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/agent-config.test.ts`
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 ```ts
 import { describe, expect, test } from "bun:test"
@@ -60,12 +60,12 @@ describe("resolveAutopilotAgentConfig", () => {
 })
 ```
 
-- [ ] **Step 2: Run the new test to verify it fails**
+- [x] **Step 2: Run the new test to verify it fails**
 
 Run: `bun test tests/agent-config.test.ts`
 Expected: FAIL with module-not-found errors for `.opencode/plugins/autopilot/agents/resolve`
 
-- [ ] **Step 3: Commit the failing test**
+- [x] **Step 3: Commit the failing test**
 
 ```bash
 git add tests/agent-config.test.ts
@@ -82,7 +82,7 @@ git commit -m "test: add agent config resolution coverage"
 - Create: `/home/pirackr/Working/github.com/pirackr/autopilot/.opencode/plugins/autopilot/agents/resolve.ts`
 - Test: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/agent-config.test.ts`
 
-- [ ] **Step 1: Add the shared types**
+- [x] **Step 1: Add the shared types**
 
 ```ts
 export type AutopilotAgentID =
@@ -117,7 +117,7 @@ export type ResolvedAutopilotAgentDefinition = AutopilotAgentDefinition & {
 }
 ```
 
-- [ ] **Step 2: Add the prompt constants**
+- [x] **Step 2: Add the prompt constants**
 
 ```ts
 export const AUTOPILOT_AGENT_PROMPTS = {
@@ -132,7 +132,7 @@ export const AUTOPILOT_AGENT_PROMPTS = {
 } as const
 ```
 
-- [ ] **Step 3: Add the built-in default definitions**
+- [x] **Step 3: Add the built-in default definitions**
 
 ```ts
 import { AUTOPILOT_AGENT_PROMPTS } from "./prompts"
@@ -172,7 +172,7 @@ export function getDefaultAgentDefinitions(): Record<string, AutopilotAgentDefin
 }
 ```
 
-- [ ] **Step 4: Add subscription presets**
+- [x] **Step 4: Add subscription presets**
 
 ```ts
 import type { AutopilotSubscriptionPreset, AutopilotAgentOverride } from "./types"
@@ -202,7 +202,7 @@ export const AUTOPILOT_SUBSCRIPTION_PRESETS: Record<
 }
 ```
 
-- [ ] **Step 5: Add the resolver**
+- [x] **Step 5: Add the resolver**
 
 ```ts
 import { getDefaultAgentDefinitions } from "./defaults"
@@ -254,12 +254,12 @@ export function resolveAutopilotAgentConfig(
 }
 ```
 
-- [ ] **Step 6: Run the resolver tests to verify they pass**
+- [x] **Step 6: Run the resolver tests to verify they pass**
 
 Run: `bun test tests/agent-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 7: Commit the resolver implementation**
+- [x] **Step 7: Commit the resolver implementation**
 
 ```bash
 git add .opencode/plugins/autopilot/agents tests/agent-config.test.ts
@@ -280,7 +280,7 @@ git commit -m "feat: add autopilot agent resolver"
 - Create: `/home/pirackr/Working/github.com/pirackr/autopilot/commands/autopilot-planner.md`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/command-config.test.ts`
 
-- [ ] **Step 1: Add a generic helper for loading command markdown by filename**
+- [x] **Step 1: Add a generic helper for loading command markdown by filename**
 
 ```ts
 function loadCommandDefinition(fileName: string): CommandDefinition {
@@ -301,7 +301,7 @@ function loadCommandDefinition(fileName: string): CommandDefinition {
 }
 ```
 
-- [ ] **Step 2: Register all five autopilot commands**
+- [x] **Step 2: Register all five autopilot commands**
 
 ```ts
 const AUTOPILOT_COMMAND_FILES = {
@@ -322,7 +322,7 @@ export function registerAutopilotCommands(config: Config): void {
 }
 ```
 
-- [ ] **Step 3: Add the command markdown files**
+- [x] **Step 3: Add the command markdown files**
 
 ```md
 ---
@@ -339,7 +339,7 @@ Use the effective `autopilot` config to determine which model and prompt to appl
 
 Create equivalent files for `autopilot-orchestrator`, `autopilot-research`, and `autopilot-planner`, adjusting the role name and purpose sentence.
 
-- [ ] **Step 4: Extend the command registration test**
+- [x] **Step 4: Extend the command registration test**
 
 ```ts
 import { registerAutopilotCommands } from "../.opencode/plugins/autopilot/command"
@@ -365,12 +365,12 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
 })
 ```
 
-- [ ] **Step 5: Run the command registration test**
+- [x] **Step 5: Run the command registration test**
 
 Run: `bun test tests/command-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 6: Commit the command work**
+- [x] **Step 6: Commit the command work**
 
 ```bash
 git add .opencode/plugins/autopilot/command.ts .opencode/commands commands tests/command-config.test.ts
@@ -383,7 +383,7 @@ git commit -m "feat: register autopilot role commands"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/package-command-assets.test.ts`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/install-commands.test.ts`
 
-- [ ] **Step 1: Extend the package asset test for all new commands**
+- [x] **Step 1: Extend the package asset test for all new commands**
 
 ```ts
 const commandFiles = [
@@ -402,7 +402,7 @@ for (const file of commandFiles) {
 }
 ```
 
-- [ ] **Step 2: Extend the install script test to verify copied role commands**
+- [x] **Step 2: Extend the install script test to verify copied role commands**
 
 ```ts
 writeFileSync(join(sourceDir, "autopilot-orchestrator.md"), "# /autopilot-orchestrator\n")
@@ -415,12 +415,12 @@ expect(readFileSync(join(targetDir, "commands", "autopilot-planner.md"), "utf8")
 )
 ```
 
-- [ ] **Step 3: Run the packaging/install tests**
+- [x] **Step 3: Run the packaging/install tests**
 
 Run: `bun test tests/package-command-assets.test.ts tests/install-commands.test.ts`
 Expected: PASS
 
-- [ ] **Step 4: Commit the packaging coverage**
+- [x] **Step 4: Commit the packaging coverage**
 
 ```bash
 git add tests/package-command-assets.test.ts tests/install-commands.test.ts
@@ -433,7 +433,7 @@ git commit -m "test: cover autopilot role command packaging"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/opencode.json`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/README.md`
 
-- [ ] **Step 1: Add an example `autopilot` config block to `opencode.json`**
+- [x] **Step 1: Add an example `autopilot` config block to `opencode.json`**
 
 ```json
 {
@@ -450,7 +450,7 @@ git commit -m "test: cover autopilot role command packaging"
 }
 ```
 
-- [ ] **Step 2: Add a README section for the four roles and preset precedence**
+- [x] **Step 2: Add a README section for the four roles and preset precedence**
 
 ```md
 ## Built-in Agents
@@ -469,12 +469,12 @@ Precedence:
 3. per-agent override
 ```
 
-- [ ] **Step 3: Run the full test suite**
+- [x] **Step 3: Run the full test suite**
 
 Run: `bun test`
 Expected: PASS
 
-- [ ] **Step 4: Commit the documentation and verification**
+- [x] **Step 4: Commit the documentation and verification**
 
 ```bash
 git add opencode.json README.md
@@ -489,7 +489,7 @@ git commit -m "docs: add autopilot agent configuration"
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/.opencode/plugins/autopilot/sources/session-todo.ts`
 - Modify: `/home/pirackr/Working/github.com/pirackr/autopilot/tests/enforcer.test.ts`
 
-- [ ] **Step 1: Add a failing regression test for normal sessions with todos**
+- [x] **Step 1: Add a failing regression test for normal sessions with todos**
 
 ```ts
 test("Enforcer does not inject continuation prompts for ordinary sessions with todos", async () => {
@@ -516,12 +516,12 @@ test("Enforcer does not inject continuation prompts for ordinary sessions with t
 })
 ```
 
-- [ ] **Step 2: Run the regression test to verify current failure**
+- [x] **Step 2: Run the regression test to verify current failure**
 
 Run: `bun test tests/enforcer.test.ts`
 Expected: FAIL because `prompt` is called even when the session was not started with `/autopilot`.
 
-- [ ] **Step 3: Gate continuation on explicit autopilot activation**
+- [x] **Step 3: Gate continuation on explicit autopilot activation**
 
 ```ts
 interface SessionState {
@@ -544,7 +544,7 @@ private getSources(sessionID: string): TodoSource[] {
 }
 ```
 
-- [ ] **Step 4: Mark sessions as autopilot-active only from explicit autopilot entrypoints**
+- [x] **Step 4: Mark sessions as autopilot-active only from explicit autopilot entrypoints**
 
 ```ts
 // Use an explicit autopilot session marker rather than all sessions.
@@ -552,12 +552,12 @@ private getSources(sessionID: string): TodoSource[] {
 // and keep session todo continuation disabled until a session has been marked autopilot-managed.
 ```
 
-- [ ] **Step 5: Re-run the enforcer tests**
+- [x] **Step 5: Re-run the enforcer tests**
 
 Run: `bun test tests/enforcer.test.ts`
 Expected: PASS, including the regression that ordinary sessions with todos do not trigger autopilot prompts.
 
-- [ ] **Step 6: Commit the runtime scoping fix**
+- [x] **Step 6: Commit the runtime scoping fix**
 
 ```bash
 git add .opencode/plugins/autopilot.ts .opencode/plugins/autopilot/enforcer.ts .opencode/plugins/autopilot/sources/session-todo.ts tests/enforcer.test.ts docs/superpowers/plans/2026-04-06-autopilot-agent-roster.md
