@@ -1,10 +1,14 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { Enforcer } from "./autopilot/enforcer"
+import { registerAutopilotCommand } from "./autopilot/command"
 
 const AutopilotPlugin: Plugin = async (ctx) => {
   const enforcer = new Enforcer(ctx)
 
   return {
+    config: async (config) => {
+      registerAutopilotCommand(config)
+    },
     event: async ({ event }) => {
       const props = event.properties as Record<string, unknown> | undefined
       const sessionID = (
