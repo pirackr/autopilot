@@ -33,3 +33,35 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
     "You are running the OpenCode `autopilot` command.",
   )
 })
+
+test("registerAutopilotCommands resolves model and prompt for role commands", () => {
+  const config = {
+    command: {},
+    autopilot: {
+      subscription: "free",
+      agents: {
+        implementer: {
+          model: "openai/gpt-5.4",
+        },
+      },
+    },
+  } as Config & {
+    autopilot: {
+      subscription: string
+      agents: {
+        implementer: {
+          model: string
+        }
+      }
+    }
+  }
+
+  registerAutopilotCommands(config)
+
+  expect(config.command?.["autopilot-implementer"]?.template).toContain(
+    "Use the resolved model `openai/gpt-5.4`.",
+  )
+  expect(config.command?.["autopilot-implementer"]?.template).toContain(
+    "You are the autopilot implementer. Once scope is clear, execute code changes end-to-end with minimal churn and verify your work.",
+  )
+})

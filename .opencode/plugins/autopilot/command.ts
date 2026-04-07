@@ -1,13 +1,31 @@
 import { readFileSync } from "node:fs"
 import type { Config } from "@opencode-ai/plugin"
+import { resolveAutopilotAgentConfig } from "./agents/resolve"
+import type {
+  AutopilotAgentID,
+  AutopilotAgentSettings,
+  ResolvedAutopilotAgentDefinition,
+} from "./agents/types"
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/
 const AUTOPILOT_COMMAND_FILES = {
-  autopilot: "autopilot.md",
-  "autopilot-orchestrator": "autopilot-orchestrator.md",
-  "autopilot-implementer": "autopilot-implementer.md",
-  "autopilot-research": "autopilot-research.md",
-  "autopilot-planner": "autopilot-planner.md",
+  autopilot: { fileName: "autopilot.md" },
+  "autopilot-orchestrator": {
+    fileName: "autopilot-orchestrator.md",
+    role: "orchestrator",
+  },
+  "autopilot-implementer": {
+    fileName: "autopilot-implementer.md",
+    role: "implementer",
+  },
+  "autopilot-research": {
+    fileName: "autopilot-research.md",
+    role: "research",
+  },
+  "autopilot-planner": {
+    fileName: "autopilot-planner.md",
+    role: "planner",
+  },
 } as const
 
 type CommandDefinition = {
@@ -35,12 +53,15 @@ function parseFrontmatter(frontmatter: string): Record<string, string> {
   return Object.fromEntries(entries)
 }
 
-function loadCommandDefinition(fileName: string): CommandDefinition {
+function loadCommandDefinition(
+  fileName: string,
+  resolvedAgent?: ResolvedAutopilotAgentDefinition,
+): CommandDefinition {
   const file = readFileSync(new URL(`../../commands/${fileName}`, import.meta.url), "utf8")
   const match = file.match(FRONTMATTER_RE)
 
   if (!match) {
-    return { template: file.trim() }
+    return { template: applyResolvedAgentConfig(file.trim(), resolvedAgent) }
   }
 
   const [, frontmatter, body] = match
@@ -48,20 +69,40 @@ function loadCommandDefinition(fileName: string): CommandDefinition {
 
   return {
     description: metadata.description,
-    template: body.trim(),
+    template: applyResolvedAgentConfig(body.trim(), resolvedAgent),
   }
 }
 
+function applyResolvedAgentConfig(
+  template: string,
+  resolvedAgent?: ResolvedAutopilotAgentDefinition,
+): string {
+  if (!resolvedAgent) return template
+
+  return `${template}\n\nUse the resolved model \`${resolvedAgent.model}\`.\nUse this role prompt: ${resolvedAgent.prompt}`
+}
+
+function getAutopilotSettings(config: Config): AutopilotAgentSettings {
+  const value = (config as Config & { autopilot?: AutopilotAgentSettings }).autopilot
+  return value ?? {}
+}
+
 export function loadAutopilotCommandDefinition(): CommandDefinition {
-  return loadCommandDefinition(AUTOPILOT_COMMAND_FILES.autopilot)
+  return loadCommandDefinition(AUTOPILOT_COMMAND_FILES.autopilot.fileName)
 }
 
 export function registerAutopilotCommands(config: Config): void {
   config.command ??= {}
+  const resolvedAgents = resolveAutopilotAgentConfig(getAutopilotSettings(config))
 
-  for (const [commandName, fileName] of Object.entries(AUTOPILOT_COMMAND_FILES)) {
+  for (const [commandName, definition] of Object.entries(AUTOPILOT_COMMAND_FILES)) {
     if (config.command[commandName]) continue
-    config.command[commandName] = loadCommandDefinition(fileName)
+
+    const resolvedAgent = definition.role
+      ? resolvedAgents[definition.role as AutopilotAgentID]
+      : undefined
+
+    config.command[commandName] = loadCommandDefinition(definition.fileName, resolvedAgent)
   }
 }
 

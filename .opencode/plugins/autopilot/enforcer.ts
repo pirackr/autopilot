@@ -66,6 +66,8 @@ export class Enforcer {
   async onIdle(sessionID: string): Promise<void> {
     const state = this.getState(sessionID)
 
+    if (!state.autopilotActive) return
+
     if (state.abortDetectedAt) {
       const elapsed = Date.now() - state.abortDetectedAt
       if (elapsed < ABORT_WINDOW_MS) {
