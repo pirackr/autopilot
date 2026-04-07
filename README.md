@@ -38,6 +38,21 @@ Set `AUTOPILOT_STATE_DIR` to override that location.
 
 `/autopilot` is registered as a per-project OpenCode command by `.opencode/commands/autopilot.md`.
 
+## Built-in Agents
+
+- `orchestrator`: top-level routing role
+- `implementer`: end-to-end code execution role
+- `research`: cheap search and docs lookup role
+- `planner`: ambiguity-clearing and planning role
+
+## Configuration
+
+Precedence:
+
+1. built-in defaults
+2. subscription preset
+3. per-agent override
+
 ## Why This Structure
 
 - `opencode.json` lives at the repository root because that is the standard per-project OpenCode config location.
