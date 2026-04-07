@@ -1,4 +1,4 @@
-import type { Plugin } from "@opencode-ai/plugin"
+import type { Message, Plugin } from "@opencode-ai/plugin"
 import { Enforcer } from "./autopilot/enforcer"
 import { registerAutopilotCommand } from "./autopilot/command"
 
@@ -38,6 +38,15 @@ export const AutopilotPlugin: Plugin = async (ctx) => {
         event.type === "tool.execute.after"
       ) {
         if (sessionID) enforcer.onActivity(sessionID)
+        if (event.type === "message.updated") {
+          const info = props?.info as Message | undefined
+          if (info) await enforcer.onMessageUpdated(info)
+        }
+        return
+      }
+
+      if (event.type === "session.compacted") {
+        if (sessionID) enforcer.onSessionCompacted(sessionID)
         return
       }
 
