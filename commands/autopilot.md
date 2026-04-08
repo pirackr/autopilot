@@ -14,14 +14,16 @@ Required behavior:
 3. Write that absolute path to the active plan marker file so the OpenCode autopilot plugin can keep the session moving if it goes idle:
 
 ```text
-$AUTOPILOT_STATE_DIR/active-plan
+$AUTOPILOT_STATE_DIR/active-plan-$AUTOPILOT_SESSION_ID
 ```
 
 If `AUTOPILOT_STATE_DIR` is not set, use:
 
 ```text
-~/.config/opencode/autopilot/active-plan
+~/.config/opencode/autopilot/active-plan-$AUTOPILOT_SESSION_ID
 ```
+
+Both environment variables are set automatically by the autopilot plugin.
 
 4. Create the state directory if it does not exist.
 5. Read the plan file and execute the unchecked tasks in order.

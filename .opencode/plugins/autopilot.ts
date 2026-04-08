@@ -38,6 +38,11 @@ export const AutopilotPlugin: Plugin = async (ctx) => {
     config: async (config) => {
       registerAutopilotCommand(config)
     },
+    "shell.env": async (input, output) => {
+      if (input.sessionID) {
+        output.env.AUTOPILOT_SESSION_ID = input.sessionID
+      }
+    },
     event: async ({ event }) => {
       const props = event.properties as Record<string, unknown> | undefined
       const sessionID = (

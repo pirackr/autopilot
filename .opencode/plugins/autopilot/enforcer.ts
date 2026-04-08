@@ -49,7 +49,7 @@ export class Enforcer {
 
   private getSources(sessionID: string): TodoSource[] {
     const state = this.getState(sessionID)
-    const sources: TodoSource[] = [new FilePlanSource()]
+    const sources: TodoSource[] = [new FilePlanSource(sessionID)]
 
     if (state.autopilotActive) {
       sources.push(new SessionTodoSource(this.ctx, sessionID))
