@@ -13,7 +13,7 @@ export const AUTOPILOT_AGENT_PROMPTS = {
   }),
   research: buildAutopilotAgentPrompt({
     role: "research",
-    model: "openai/gpt-5-nano",
+    model: "opencode/gpt-5-nano",
     costTier: "cheap",
   }),
   planner: buildAutopilotAgentPrompt({

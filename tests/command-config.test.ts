@@ -36,6 +36,9 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
   expect(config.command?.autopilot?.template).toContain(
     "Use the built-in `orchestrator` role.",
   )
+  expect(config.command?.autopilot?.template).toContain(
+    "Remain in the `orchestrator` role for the full `/autopilot` run.",
+  )
 })
 
 test("registerAutopilotCommands resolves model and prompt for role commands", () => {

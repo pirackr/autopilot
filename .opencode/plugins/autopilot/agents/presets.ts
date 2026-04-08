@@ -14,11 +14,11 @@ export const AUTOPILOT_SUBSCRIPTION_PRESETS: Record<
       costTier: "standard",
     },
     implementer: {
-      model: "openai/gpt-5-mini",
+      model: "openai/gpt-5.4-mini",
       costTier: "standard",
     },
     research: {
-      model: "openai/gpt-5-nano",
+      model: "opencode/gpt-5-nano",
       costTier: "cheap",
     },
     planner: {
@@ -36,7 +36,7 @@ export const AUTOPILOT_SUBSCRIPTION_PRESETS: Record<
       costTier: "expensive",
     },
     research: {
-      model: "openai/gpt-5-nano",
+      model: "opencode/gpt-5-nano",
       costTier: "cheap",
     },
     planner: {

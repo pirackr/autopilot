@@ -24,7 +24,7 @@ export function getDefaultAgentDefinitions(): Record<
       id: "research",
       description: "Cheap search and documentation role",
       prompt: AUTOPILOT_AGENT_PROMPTS.research,
-      model: "openai/gpt-5-nano",
+      model: "opencode/gpt-5-nano",
       costTier: "cheap",
     },
     planner: {
