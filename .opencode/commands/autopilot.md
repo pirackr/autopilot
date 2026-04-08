@@ -5,6 +5,9 @@ argument-hint: "PLAN_FILE"
 
 You are running the OpenCode `autopilot` command.
 
+Use the built-in `orchestrator` role.
+Use the effective `autopilot` config to determine which model and prompt to apply.
+
 Arguments: `$ARGUMENTS`
 
 Required behavior:
@@ -26,10 +29,17 @@ If `AUTOPILOT_STATE_DIR` is not set, use:
 Both environment variables are set automatically by the autopilot plugin.
 
 4. Create the state directory if it does not exist.
-5. Read the plan file and execute the unchecked tasks in order.
-6. Update the plan file as tasks complete.
-7. Continue without asking for confirmation between tasks unless a real blocker prevents progress.
-8. When all tasks are complete, remove the active plan marker file.
-9. If a blocker prevents completion, keep the plan file accurate and report the blocker clearly.
+5. Read the plan file and orchestrate the unchecked tasks in order.
+6. For each task, choose the right autopilot subagent explicitly:
+
+- Use `/autopilot-planner` when the task is ambiguous or needs scope clarification before code changes.
+- Use `/autopilot-research` when the next step is information gathering, codebase search, or evidence collection.
+- Use `/autopilot-implementer` when the task is ready to be executed.
+
+7. When a task is implementation work, delegate it to `/autopilot-implementer` with the full task block as context instead of implementing it in the orchestrator.
+8. Update the plan file as tasks complete.
+9. Continue without asking for confirmation between tasks unless a real blocker prevents progress.
+10. When all tasks are complete, remove the active plan marker file.
+11. If a blocker prevents completion, keep the plan file accurate and report the blocker clearly.
 
 Focus on finishing the plan, not on re-planning it.

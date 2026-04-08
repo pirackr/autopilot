@@ -17,6 +17,7 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
     template: "Keep existing commands untouched.",
   })
   expect(config.command?.autopilot?.description).toBeDefined()
+  expect(config.command?.autopilot?.agent).toBe("autopilot-orchestrator")
   expect(config.command?.["autopilot-orchestrator"]?.description).toBe(
     "Run the autopilot orchestrator role",
   )
@@ -32,30 +33,21 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
   expect(config.command?.autopilot?.template).toContain(
     "You are running the OpenCode `autopilot` command.",
   )
+  expect(config.command?.autopilot?.template).toContain(
+    "Use the built-in `orchestrator` role.",
+  )
 })
 
 test("registerAutopilotCommands resolves model and prompt for role commands", () => {
   const config = {
     command: {},
     agent: {},
-    autopilot: {
-      subscription: "free",
-      agents: {
-        implementer: {
-          model: "openai/gpt-5.4",
-        },
-      },
-    },
   } as Config & {
     agent: Record<string, { model?: string; prompt?: string }>
-    autopilot: {
-      subscription: string
-      agents: {
-        implementer: {
-          model: string
-        }
-      }
-    }
+  }
+
+  config.agent["autopilot-implementer"] = {
+    model: "openai/gpt-5.4",
   }
 
   registerAutopilotCommands(config)
@@ -71,5 +63,26 @@ test("registerAutopilotCommands resolves model and prompt for role commands", ()
   )
   expect(config.agent?.["autopilot-implementer"]?.prompt).toContain(
     "Use an explicit execution and verification loop",
+  )
+})
+
+test("registerAutopilotCommands uses agent config overrides for the main autopilot command", () => {
+  const config = {
+    command: {},
+    agent: {
+      "autopilot-orchestrator": {
+        model: "anthropic/claude-haiku-4-5",
+      },
+    },
+  } as Config & {
+    agent: Record<string, { model?: string; prompt?: string }>
+  }
+
+  registerAutopilotCommands(config)
+
+  expect(config.command?.autopilot?.agent).toBe("autopilot-orchestrator")
+  expect(config.command?.autopilot?.model).toBe("anthropic/claude-haiku-4-5")
+  expect(config.agent?.["autopilot-orchestrator"]?.model).toBe(
+    "anthropic/claude-haiku-4-5",
   )
 })

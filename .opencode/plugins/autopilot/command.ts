@@ -3,13 +3,17 @@ import type { Config } from "@opencode-ai/plugin"
 import { resolveAutopilotAgentConfig } from "./agents/resolve"
 import type {
   AutopilotAgentID,
+  AutopilotAgentOverride,
   AutopilotAgentSettings,
   ResolvedAutopilotAgentDefinition,
 } from "./agents/types"
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/
 const AUTOPILOT_COMMAND_FILES = {
-  autopilot: { fileName: "autopilot.md" },
+  autopilot: {
+    fileName: "autopilot.md",
+    role: "orchestrator",
+  },
   "autopilot-orchestrator": {
     fileName: "autopilot-orchestrator.md",
     role: "orchestrator",
@@ -44,6 +48,35 @@ type AgentDefinition = {
 type AutopilotConfig = Config & {
   agent?: Record<string, AgentDefinition>
   autopilot?: AutopilotAgentSettings
+}
+
+function getAutopilotAgentName(role: AutopilotAgentID): string {
+  return `autopilot-${role}`
+}
+
+function getAgentOverrides(
+  config: AutopilotConfig,
+): Partial<Record<AutopilotAgentID, AutopilotAgentOverride>> {
+  return Object.fromEntries(
+    (["orchestrator", "implementer", "research", "planner"] as const)
+      .map((role) => {
+        const agent = config.agent?.[getAutopilotAgentName(role)]
+        if (!agent) return null
+
+        return [
+          role,
+          {
+            model: agent.model,
+            prompt: agent.prompt,
+          },
+        ] as const
+      })
+      .filter(
+        (
+          entry,
+        ): entry is readonly [AutopilotAgentID, AutopilotAgentOverride] => entry !== null,
+      ),
+  )
 }
 
 function parseFrontmatter(frontmatter: string): Record<string, string> {
@@ -85,13 +118,18 @@ function loadCommandDefinition(
   }
 }
 
-function getAutopilotAgentName(role: AutopilotAgentID): string {
-  return `autopilot-${role}`
-}
-
 function getAutopilotSettings(config: Config): AutopilotAgentSettings {
-  const value = (config as AutopilotConfig).autopilot
-  return value ?? {}
+  const typedConfig = config as AutopilotConfig
+  const value = typedConfig.autopilot ?? {}
+  const agentOverrides = getAgentOverrides(typedConfig)
+
+  return {
+    ...value,
+    agents: {
+      ...value.agents,
+      ...agentOverrides,
+    },
+  }
 }
 
 function registerAutopilotAgent(
@@ -101,10 +139,11 @@ function registerAutopilotAgent(
 ): string {
   const agentName = getAutopilotAgentName(role)
   config.agent ??= {}
-  config.agent[agentName] ??= {
+  config.agent[agentName] = {
+    ...config.agent[agentName],
     description: resolvedAgent.description,
-    model: resolvedAgent.model,
-    prompt: resolvedAgent.prompt,
+    model: config.agent[agentName]?.model ?? resolvedAgent.model,
+    prompt: config.agent[agentName]?.prompt ?? resolvedAgent.prompt,
   }
   return agentName
 }
