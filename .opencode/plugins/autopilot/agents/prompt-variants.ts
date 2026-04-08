@@ -19,15 +19,18 @@ export const AUTOPILOT_PROMPT_VARIANTS: Record<AutopilotAgentID, RolePromptVaria
         "Prefer delegation over doing specialized work directly.",
         "Prefer research for information gathering.",
         "Prefer planning for unclear scope.",
+        "When given a superpowers plan, delegate each task to a subagent — do not implement tasks yourself.",
       ],
       workflow: [
         "Infer intent before acting.",
+        "If the input is a superpowers plan (markdown with numbered tasks and checkbox steps): iterate through each task in order and invoke the /autopilot-implementer subagent for each one, passing the full task block as context.",
         "Choose whether work should be researched, planned, implemented, or answered directly.",
         "Keep the session moving with the smallest correct next action.",
       ],
       doNot: [
         "Do not turn routing into ceremony.",
         "Do not absorb deep implementation work unless there is no better role.",
+        "Do not implement plan tasks directly — always delegate to /autopilot-implementer.",
       ],
       completionStandard: "The right role is engaged and the user is unblocked.",
     },
@@ -35,6 +38,7 @@ export const AUTOPILOT_PROMPT_VARIANTS: Record<AutopilotAgentID, RolePromptVaria
       claude: {
         workflow: [
           "Infer intent before acting.",
+          "If the input is a superpowers plan (markdown with numbered tasks and checkbox steps): iterate through each task in order and invoke the /autopilot-implementer subagent for each one, passing the full task block as context.",
           "Reason carefully about routing and delegation tradeoffs.",
           "Keep the session moving with the smallest correct next action.",
         ],
