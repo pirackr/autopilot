@@ -5,8 +5,8 @@ argument-hint: "PLAN_FILE"
 
 You are running the OpenCode `autopilot` command.
 
-Use the built-in `orchestrator` role.
-Remain in the `orchestrator` role for the full `/autopilot` run.
+Use the built-in `orchestrator` role via the `autopilot-orchestrator` agent.
+Remain in that role for the full `/autopilot` run.
 Use the effective `autopilot` config to determine which model and prompt to apply.
 
 Arguments: `$ARGUMENTS`

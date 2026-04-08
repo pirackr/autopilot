@@ -34,10 +34,10 @@ test("registerAutopilotCommands injects all autopilot slash commands", () => {
     "You are running the OpenCode `autopilot` command.",
   )
   expect(config.command?.autopilot?.template).toContain(
-    "Use the built-in `orchestrator` role.",
+    "Use the built-in `orchestrator` role via the `autopilot-orchestrator` agent.",
   )
   expect(config.command?.autopilot?.template).toContain(
-    "Remain in the `orchestrator` role for the full `/autopilot` run.",
+    "Remain in that role for the full `/autopilot` run.",
   )
 })
 
