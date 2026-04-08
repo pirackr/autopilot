@@ -35,7 +35,7 @@ function assistantMessage(overrides: Partial<Record<string, unknown>> = {}) {
   }
 }
 
-test("Enforcer auto-compacts a session once usage exceeds 200k tokens", async () => {
+test("Enforcer does not auto-compact ordinary sessions once usage exceeds 200k tokens", async () => {
   const ctx = createCtx()
   const enforcer = new Enforcer(ctx)
 
@@ -50,6 +50,29 @@ test("Enforcer auto-compacts a session once usage exceeds 200k tokens", async ()
     }),
   )
 
+  expect(ctx.client.session.summarize).not.toHaveBeenCalled()
+})
+
+test("Enforcer auto-compacts autopilot sessions on idle once usage exceeds 200k tokens", async () => {
+  const ctx = createCtx()
+  const enforcer = new Enforcer(ctx)
+  enforcer.markAutopilotActive("session-1")
+
+  await enforcer.onMessageUpdated(
+    assistantMessage({
+      tokens: {
+        input: 150_000,
+        output: 40_000,
+        reasoning: 10_001,
+        cache: { read: 0, write: 0 },
+      },
+    }),
+  )
+
+  expect(ctx.client.session.summarize).not.toHaveBeenCalled()
+
+  await enforcer.onIdle("session-1")
+
   expect(ctx.client.session.summarize).toHaveBeenCalledTimes(1)
   expect(ctx.client.session.summarize).toHaveBeenCalledWith({
     path: { id: "session-1" },
@@ -57,9 +80,47 @@ test("Enforcer auto-compacts a session once usage exceeds 200k tokens", async ()
   })
 })
 
+test("Enforcer continues autopilot work after compaction completes", async () => {
+  const prompt = mock(async () => true)
+  const todo = mock(async () => [
+    { id: "todo-1", content: "pending", status: "pending", priority: "high" },
+  ])
+
+  const ctx = {
+    directory: "/workspace",
+    client: {
+      session: {
+        prompt,
+        todo,
+        summarize: mock(async () => true),
+      },
+    },
+  } as unknown as PluginInput
+
+  const enforcer = new Enforcer(ctx)
+  enforcer.markAutopilotActive("session-1")
+
+  await enforcer.onMessageUpdated(
+    assistantMessage({
+      tokens: {
+        input: 150_000,
+        output: 40_000,
+        reasoning: 10_001,
+        cache: { read: 0, write: 0 },
+      },
+    }),
+  )
+
+  await enforcer.onIdle("session-1")
+  await enforcer.onSessionCompacted("session-1")
+
+  expect(prompt).toHaveBeenCalledTimes(1)
+})
+
 test("Enforcer resets token tracking after compaction", async () => {
   const ctx = createCtx()
   const enforcer = new Enforcer(ctx)
+  enforcer.markAutopilotActive("session-1")
 
   await enforcer.onMessageUpdated(
     assistantMessage({
@@ -72,7 +133,8 @@ test("Enforcer resets token tracking after compaction", async () => {
       },
     }),
   )
-  enforcer.onSessionCompacted("session-1")
+  await enforcer.onIdle("session-1")
+  await enforcer.onSessionCompacted("session-1")
 
   await enforcer.onMessageUpdated(
     assistantMessage({
@@ -85,6 +147,7 @@ test("Enforcer resets token tracking after compaction", async () => {
       },
     }),
   )
+  await enforcer.onIdle("session-1")
 
   expect(ctx.client.session.summarize).toHaveBeenCalledTimes(2)
 })

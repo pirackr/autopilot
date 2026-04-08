@@ -84,7 +84,7 @@ export const AutopilotPlugin: Plugin = async (ctx) => {
       }
 
       if (event.type === "session.compacted") {
-        if (sessionID) enforcer.onSessionCompacted(sessionID)
+        if (sessionID) await enforcer.onSessionCompacted(sessionID)
         return
       }
 

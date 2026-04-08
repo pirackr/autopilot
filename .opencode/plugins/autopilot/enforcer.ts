@@ -16,6 +16,8 @@ interface SessionState {
   autopilotActive?: boolean
   abortDetectedAt?: number
   compacting?: boolean
+  compactionPending?: boolean
+  continueAfterCompaction?: boolean
   tokensSinceCompaction: number
   compactedMessageIDs: Set<string>
 }
@@ -76,6 +78,25 @@ export class Enforcer {
       state.abortDetectedAt = undefined
     }
 
+    if (state.compactionPending && !state.compacting) {
+      state.compacting = true
+      state.compactionPending = false
+      state.continueAfterCompaction = true
+
+      try {
+        await this.ctx.client.session.summarize({
+          path: { id: sessionID },
+          query: { directory: this.ctx.directory },
+        })
+      } catch {
+        state.compacting = false
+        state.compactionPending = true
+        state.continueAfterCompaction = false
+      }
+
+      return
+    }
+
     const sources = this.getSources(sessionID)
     let result = null
     for (const source of sources) {
@@ -115,30 +136,26 @@ export class Enforcer {
     if (!message.time.completed || message.summary) return
 
     const state = this.getState(message.sessionID)
+    if (!state.autopilotActive) return
     if (state.compacting || state.compactedMessageIDs.has(message.id)) return
 
     state.compactedMessageIDs.add(message.id)
     state.tokensSinceCompaction += this.getMessageTokenCount(message)
 
     if (state.tokensSinceCompaction <= AUTO_COMPACT_THRESHOLD_TOKENS) return
-
-    state.compacting = true
-
-    try {
-      await this.ctx.client.session.summarize({
-        path: { id: message.sessionID },
-        query: { directory: this.ctx.directory },
-      })
-    } catch {
-      state.compacting = false
-    }
+    state.compactionPending = true
   }
 
-  onSessionCompacted(sessionID: string): void {
+  async onSessionCompacted(sessionID: string): Promise<void> {
     const state = this.getState(sessionID)
     state.compacting = false
     state.tokensSinceCompaction = 0
     state.compactedMessageIDs.clear()
+
+    if (!state.continueAfterCompaction) return
+
+    state.continueAfterCompaction = false
+    await this.onIdle(sessionID)
   }
 
   onSessionDeleted(sessionID: string): void {
