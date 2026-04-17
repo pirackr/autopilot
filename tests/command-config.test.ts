@@ -89,3 +89,15 @@ test("registerAutopilotCommands uses agent config overrides for the main autopil
     "anthropic/claude-haiku-4-5",
   )
 })
+
+test("registerAutopilotCommands includes the plan summary workflow in the main command", () => {
+  const config: Config = { command: {} }
+
+  registerAutopilotCommands(config)
+
+  expect(config.command?.autopilot?.template).toContain("plan-summaries")
+  expect(config.command?.autopilot?.template).toContain("Current Task")
+  expect(config.command?.autopilot?.template).toContain(
+    "active-plan-signature-$AUTOPILOT_SESSION_ID",
+  )
+})

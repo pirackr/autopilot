@@ -26,11 +26,17 @@ This repository is an OpenCode-only home for the `autopilot` plugin and its `/au
 
 ## Active Plan State
 
-The plugin looks for an active plan marker at:
+The plugin stores session-scoped plan markers and plan-backed summary state under:
 
 ```text
-~/.config/opencode/autopilot/active-plan
+~/.config/opencode/autopilot/
 ```
+
+Important files:
+
+- `active-plan-$AUTOPILOT_SESSION_ID`: the absolute plan path for the current `/autopilot` run
+- `active-plan-signature-$AUTOPILOT_SESSION_ID`: the last observed SHA-256 hash of the plan contents
+- `plan-summaries/<sanitized-plan-name>-<sha256-of-plan-path>.md`: the structured notepad summary for that plan
 
 Set `AUTOPILOT_STATE_DIR` to override that location.
 
