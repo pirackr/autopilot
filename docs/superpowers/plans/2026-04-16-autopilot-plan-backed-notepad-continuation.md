@@ -231,7 +231,7 @@ git commit -m "feat: add plan state helper for autopilot"
 - Create: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/.opencode/plugins/autopilot/summary-file.ts`
 - Create: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/tests/summary-file.test.ts`
 
-- [ ] **Step 1: Write the failing summary helper tests**
+- [x] **Step 1: Write the failing summary helper tests**
 
 ```ts
 import { afterEach, expect, test } from "bun:test"
@@ -327,12 +327,12 @@ test("readPlanSummary flags stale tasks and missing sections without rewriting t
 })
 ```
 
-- [ ] **Step 2: Run the summary helper tests to verify they fail**
+- [x] **Step 2: Run the summary helper tests to verify they fail**
 
 Run: `bun test tests/summary-file.test.ts`
 Expected: FAIL with a module-not-found error for `../.opencode/plugins/autopilot/summary-file`
 
-- [ ] **Step 3: Add the summary helper implementation**
+- [x] **Step 3: Add the summary helper implementation**
 
 ```ts
 import { createHash } from "node:crypto"
@@ -433,7 +433,7 @@ export function readPlanSummary(planPath: string, firstUncheckedTask: string | n
 }
 ```
 
-- [ ] **Step 4: Run the summary helper tests to verify they pass**
+- [x] **Step 4: Run the summary helper tests to verify they pass**
 
 Run: `bun test tests/summary-file.test.ts`
 Expected: PASS
