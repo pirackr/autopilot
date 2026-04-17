@@ -451,7 +451,7 @@ git commit -m "feat: add autopilot plan summary helper"
 - Modify: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/.opencode/plugins/autopilot/enforcer.ts`
 - Modify: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/tests/enforcer.test.ts`
 
-- [ ] **Step 1: Extend `tests/enforcer.test.ts` with failing plan-backed coverage**
+- [x] **Step 1: Extend `tests/enforcer.test.ts` with failing plan-backed coverage**
 
 ```ts
 import { expect, mock, test } from "bun:test"
@@ -641,12 +641,12 @@ test("Enforcer disables plan-backed continuation and clears the signature marker
 })
 ```
 
-- [ ] **Step 2: Run the enforcer tests to verify they fail**
+- [x] **Step 2: Run the enforcer tests to verify they fail**
 
 Run: `bun test tests/enforcer.test.ts`
 Expected: FAIL because `Enforcer` still uses the old generic prompt path and does not know about summaries or persisted plan signatures
 
-- [ ] **Step 3: Update `Enforcer` to support both generic and plan-backed continuation**
+- [x] **Step 3: Update `Enforcer` to support both generic and plan-backed continuation**
 
 ```ts
 import type { AssistantMessage, Message, PluginInput } from "@opencode-ai/plugin"
@@ -821,12 +821,12 @@ export class Enforcer {
 }
 ```
 
-- [ ] **Step 4: Run the enforcer tests to verify they pass**
+- [x] **Step 4: Run the enforcer tests to verify they pass**
 
 Run: `bun test tests/enforcer.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit the plan-backed enforcer flow**
+- [x] **Step 5: Commit the plan-backed enforcer flow**
 
 ```bash
 git add .opencode/plugins/autopilot/enforcer.ts tests/enforcer.test.ts

@@ -1,13 +1,20 @@
 import { expect, mock, test } from "bun:test"
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { tmpdir } from "node:os"
 import type { PluginInput } from "@opencode-ai/plugin"
 import { Enforcer } from "../.opencode/plugins/autopilot/enforcer"
+import { getPlanSummaryPath } from "../.opencode/plugins/autopilot/summary-file"
 
-function createCtx() {
+function createCtx(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     directory: "/workspace",
     client: {
       session: {
+        prompt: mock(async () => true),
         summarize: mock(async () => true),
+        todo: mock(async () => []),
+        ...overrides,
       },
     },
   } as unknown as PluginInput
@@ -197,4 +204,168 @@ test("Enforcer injects continuation prompts for autopilot-managed sessions with 
   await enforcer.onIdle("session-1")
 
   expect(prompt).toHaveBeenCalledTimes(1)
+})
+
+test("Enforcer injects a plan-backed continuation prompt and skips session todos", async () => {
+  const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
+  const planPath = join(stateDir, "plan.md")
+  writeFileSync(planPath, "- [x] done\n- [ ] ship feature\n")
+  writeFileSync(join(stateDir, "active-plan-session-1"), planPath)
+
+  const previous = process.env.AUTOPILOT_STATE_DIR
+  process.env.AUTOPILOT_STATE_DIR = stateDir
+
+  const summaryPath = getPlanSummaryPath(planPath)
+  mkdirSync(dirname(summaryPath), { recursive: true })
+  writeFileSync(
+    summaryPath,
+    [
+      "# Autopilot Summary",
+      "",
+      "## Current Task",
+      "ship feature",
+      "",
+      "## Next Step",
+      "update the final implementation branch",
+      "",
+      "## Blockers",
+      "- none",
+      "",
+      "## Recent Progress",
+      "- tests are passing",
+      "",
+      "## Learnings",
+      "- none yet",
+      "",
+    ].join("\n"),
+  )
+
+  try {
+    const ctx = createCtx()
+    const enforcer = new Enforcer(ctx)
+    enforcer.markAutopilotActive("session-1")
+    await enforcer.onIdle("session-1")
+
+    expect(ctx.client.session.todo).not.toHaveBeenCalled()
+
+    const promptInput = ctx.client.session.prompt.mock.calls[0][0]
+    expect(promptInput.body.parts[0].text).toContain("[Plan Status: 1/2 completed, 1 remaining]")
+    expect(promptInput.body.parts[0].text).toContain("[Current Task: ship feature]")
+    expect(promptInput.body.parts[0].text).toContain("[Next Step: update the final implementation branch]")
+  } finally {
+    process.env.AUTOPILOT_STATE_DIR = previous
+    rmSync(stateDir, { recursive: true, force: true })
+  }
+})
+
+test("Enforcer falls back to the existing non-plan path for standalone autopilot role sessions", async () => {
+  const todo = mock(async () => [
+    { id: "todo-1", content: "pending", status: "pending", priority: "high" },
+  ])
+  const prompt = mock(async () => true)
+
+  const ctx = createCtx({ prompt, todo })
+  const enforcer = new Enforcer(ctx)
+  enforcer.markAutopilotActive("session-1")
+
+  await enforcer.onIdle("session-1")
+
+  expect(todo).toHaveBeenCalledTimes(1)
+  expect(prompt).toHaveBeenCalledTimes(1)
+})
+
+test("Enforcer re-reads the persisted signature marker after restart and asks for reconciliation", async () => {
+  const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
+  const planPath = join(stateDir, "plan.md")
+  writeFileSync(planPath, "- [ ] first task\n- [ ] second task\n")
+  writeFileSync(join(stateDir, "active-plan-session-1"), planPath)
+
+  const previous = process.env.AUTOPILOT_STATE_DIR
+  process.env.AUTOPILOT_STATE_DIR = stateDir
+
+  try {
+    const firstCtx = createCtx()
+    const firstEnforcer = new Enforcer(firstCtx)
+    firstEnforcer.markAutopilotActive("session-1")
+    await firstEnforcer.onIdle("session-1")
+
+    writeFileSync(planPath, "- [ ] first task\n- [ ] second task updated\n")
+
+    const secondCtx = createCtx()
+    const secondEnforcer = new Enforcer(secondCtx)
+    secondEnforcer.markAutopilotActive("session-1")
+    await secondEnforcer.onIdle("session-1")
+
+    const promptInput = secondCtx.client.session.prompt.mock.calls[0][0]
+    expect(promptInput.body.parts[0].text).toContain("reconcile the summary with the current checklist")
+  } finally {
+    process.env.AUTOPILOT_STATE_DIR = previous
+    rmSync(stateDir, { recursive: true, force: true })
+  }
+})
+
+test("Enforcer re-reads the summary file after compaction before continuing", async () => {
+  const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
+  const planPath = join(stateDir, "plan.md")
+  writeFileSync(planPath, "- [ ] ship feature\n")
+  writeFileSync(join(stateDir, "active-plan-session-1"), planPath)
+
+  const previous = process.env.AUTOPILOT_STATE_DIR
+  process.env.AUTOPILOT_STATE_DIR = stateDir
+
+  const summaryPath = getPlanSummaryPath(planPath)
+  mkdirSync(dirname(summaryPath), { recursive: true })
+  writeFileSync(summaryPath, "# Autopilot Summary\n\n## Current Task\nship feature\n\n## Next Step\nfirst draft\n\n## Blockers\n- none\n\n## Recent Progress\n- summary initialized\n\n## Learnings\n- none yet\n")
+
+  try {
+    const ctx = createCtx()
+    const enforcer = new Enforcer(ctx)
+    enforcer.markAutopilotActive("session-1")
+
+    await enforcer.onMessageUpdated(assistantMessage({
+      tokens: {
+        input: 150_000,
+        output: 40_000,
+        reasoning: 10_001,
+        cache: { read: 0, write: 0 },
+      },
+    }))
+
+    await enforcer.onIdle("session-1")
+    writeFileSync(summaryPath, "# Autopilot Summary\n\n## Current Task\nship feature\n\n## Next Step\npost-compaction task\n\n## Blockers\n- none\n\n## Recent Progress\n- refreshed after compaction\n\n## Learnings\n- none yet\n")
+    await enforcer.onSessionCompacted("session-1")
+
+    const promptInput = ctx.client.session.prompt.mock.calls[0][0]
+    expect(promptInput.body.parts[0].text).toContain("[Next Step: post-compaction task]")
+  } finally {
+    process.env.AUTOPILOT_STATE_DIR = previous
+    rmSync(stateDir, { recursive: true, force: true })
+  }
+})
+
+test("Enforcer disables plan-backed continuation and clears the signature marker when the plan disappears", async () => {
+  const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
+  const planPath = join(stateDir, "plan.md")
+  writeFileSync(planPath, "- [ ] ship feature\n")
+  writeFileSync(join(stateDir, "active-plan-session-1"), planPath)
+
+  const previous = process.env.AUTOPILOT_STATE_DIR
+  process.env.AUTOPILOT_STATE_DIR = stateDir
+
+  try {
+    const ctx = createCtx()
+    const enforcer = new Enforcer(ctx)
+    enforcer.markAutopilotActive("session-1")
+
+    await enforcer.onIdle("session-1")
+    rmSync(planPath)
+    await enforcer.onIdle("session-1")
+
+    const promptInput = ctx.client.session.prompt.mock.calls[1][0]
+    expect(promptInput.body.parts[0].text).toContain("Autopilot stopped because the active plan for this session could not be resolved")
+    expect(existsSync(join(stateDir, "active-plan-signature-session-1"))).toBe(false)
+  } finally {
+    process.env.AUTOPILOT_STATE_DIR = previous
+    rmSync(stateDir, { recursive: true, force: true })
+  }
 })
