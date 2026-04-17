@@ -89,3 +89,48 @@ test("readPlanSummary flags stale tasks and missing sections without rewriting t
     expect(readFileSync(summaryPath, "utf-8")).toContain("outdated task")
   })
 })
+
+test("readPlanSummary parses CRLF-formatted summary sections", async () => {
+  const stateDir = makeTempStateDir()
+  const planPath = join(stateDir, "feature-plan.md")
+  writeFileSync(planPath, "- [ ] current task\n")
+
+  await withStateDir(stateDir, async () => {
+    const summaryPath = getPlanSummaryPath(planPath)
+    mkdirSync(dirname(summaryPath), { recursive: true })
+    writeFileSync(
+      summaryPath,
+      [
+        "# Autopilot Summary",
+        "",
+        "## Current Task",
+        "current task",
+        "",
+        "## Next Step",
+        "take the next step",
+        "",
+        "## Blockers",
+        "- none",
+        "",
+        "## Recent Progress",
+        "- made progress",
+        "",
+        "## Learnings",
+        "- learned something",
+        "",
+      ].join("\r\n"),
+    )
+
+    const summary = readPlanSummary(planPath, "current task")
+
+    expect(summary).toMatchObject({
+      currentTask: "current task",
+      nextStep: "take the next step",
+      blockers: "- none",
+      recentProgress: "- made progress",
+      learnings: "- learned something",
+      missingSections: [],
+      requiresReconcile: false,
+    })
+  })
+})

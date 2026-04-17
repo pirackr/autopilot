@@ -54,7 +54,7 @@ function parseSections(content: string): Record<string, string> {
   const sections: Record<string, string> = {}
 
   for (const section of REQUIRED_SECTIONS) {
-    const pattern = new RegExp(`## ${section}\\n([\\s\\S]*?)(?=\\n## |$)`)
+    const pattern = new RegExp(`## ${section}\\r?\\n([\\s\\S]*?)(?=\\r?\\n## |$)`)
     const match = content.match(pattern)
     if (match) sections[section] = match[1].trim()
   }
