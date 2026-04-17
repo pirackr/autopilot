@@ -438,7 +438,7 @@ export function readPlanSummary(planPath: string, firstUncheckedTask: string | n
 Run: `bun test tests/summary-file.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit the summary helper**
+- [x] **Step 5: Commit the summary helper**
 
 ```bash
 git add .opencode/plugins/autopilot/summary-file.ts tests/summary-file.test.ts
