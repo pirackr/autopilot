@@ -99,10 +99,12 @@ $AUTOPILOT_STATE_DIR/plan-summaries/<plan-basename>-<plan-hash>.md
 
 Where:
 
-- `plan-basename` is a sanitized basename of the plan file without spaces or path separators
-- `plan-hash` is the first 12 lowercase hex characters of the SHA-256 hash of the absolute plan path, used to avoid collisions between plans with the same filename in different directories
+- `plan-basename` is the lowercase plan basename with every run of non-alphanumeric characters replaced by `-`, trimmed of leading and trailing `-`, and truncated to 48 characters
+- `plan-hash` is the full 64-character lowercase hex SHA-256 hash of the absolute plan path, used to avoid collisions between plans with the same filename in different directories
 
 This keeps the summary plan-scoped rather than session-scoped while avoiding writes into the project tree.
+
+Because the full SHA-256 hash of the absolute plan path is used, hash-collision handling is out of scope for this design. The path derivation treats a matching full hash as the same plan identity.
 
 ## Summary File Format
 
@@ -162,6 +164,31 @@ Required agent behavior:
 
 The summary file must be treated as part of task completion, not as a best-effort note.
 
+## Enforcement Model
+
+This is a soft enforcement design, not a hard write gate.
+
+The plugin enforces summary maintenance by:
+
+- always injecting update instructions in continuation prompts
+- escalating reconcile instructions when the plan or summary appears stale
+- making the summary the primary recovery artifact after interruption or compaction
+
+The plugin does not block tool use, reject task completion, or rewrite the summary file if the agent ignores the contract. Hard enforcement is out of scope for this design.
+
+## Plan Change Detection
+
+Plan edits are expected to happen, and summary staleness must be detected even when the summary file is well-formed.
+
+Required behavior:
+
+- the plan-state helper computes a `planSignature` as the SHA-256 hash of the full plan file contents
+- `Enforcer` stores the last observed `planSignature` in session state for plan-backed sessions
+- when the signature changes between idle checks, the next continuation prompt must explicitly instruct the agent to reconcile the summary with the current plan before proceeding
+- if the summary `Current Task` no longer matches the first unchecked task in the plan, the prompt must also include the same reconcile instruction even if the plan signature did not change during the current process lifetime
+
+This makes plan-edit drift a first-class recovery path rather than a malformed-summary special case.
+
 ## First-Run Initialization
 
 If a valid plan exists but the summary file does not, the plugin should auto-create the summary file before injecting the next idle prompt.
@@ -189,6 +216,7 @@ Incomplete tasks remain in the active plan. Continue working on the next pending
 - Use the active plan as the source of truth.
 - Update the summary file after every completed task and after any meaningful progress.
 - Refresh `Current Task`, `Next Step`, `Blockers`, and `Recent Progress` before yielding control.
+- If the plan changed, reconcile the summary with the current checklist before proceeding.
 - If blockers changed, record them before stopping.
 
 [Plan Status: 3/8 completed, 5 remaining]
@@ -202,6 +230,7 @@ Prompt requirements:
 - include plan progress from the checklist count
 - include `Current Task`, `Next Step`, and `Blockers` every time they are available
 - explicitly require the agent to refresh the summary file before stopping, idling, or moving to the next task
+- add a reconcile instruction whenever the observed plan signature changed or the summary task no longer matches the plan
 - tell the agent to normalize the summary file if required headings are missing
 - tell the agent to reconcile the summary with the current plan if the notes appear stale or mismatched
 - stay short and imperative, consistent with this plugin's current style
@@ -217,14 +246,29 @@ On `session.idle` for an `autopilot`-active session:
 3. resolve the active plan marker and plan path
 4. if the plan is invalid, disable `autopilot` for the session and send a recovery message
 5. count checked and unchecked checklist items
-6. if there are no unchecked items, do nothing
-7. resolve the summary file path
-8. if the summary file is missing, create it from the initialization template
-9. parse the summary headings into structured fields
-10. build the strong continuation prompt from plan progress and summary fields
-11. inject that prompt into the session
+6. compute the current `planSignature` and compare it with the last observed signature for the session
+7. if there are no unchecked items, do nothing
+8. resolve the summary file path
+9. if the summary file is missing, create it from the initialization template
+10. parse the summary headings into structured fields
+11. detect whether the prompt must include a reconcile instruction because the plan changed or the summary task is stale
+12. build the strong continuation prompt from plan progress and summary fields
+13. store the current `planSignature` in session state
+14. inject that prompt into the session
 
 This preserves the current `Enforcer` lifecycle loop while replacing the generic continuation payload with plan-aware context.
+
+## Compaction Interaction
+
+Compaction does not change summary ownership or summary format. It changes how strongly the summary matters.
+
+Required behavior after compaction:
+
+- when auto-compaction completes and `Enforcer` resumes continuation, it must re-read the plan and summary file fresh from disk rather than relying on any pre-compaction in-memory snapshot
+- the first post-compaction continuation prompt should include the latest `Current Task`, `Next Step`, and `Blockers`, and may include a concise `Recent Progress` line when helpful for reorientation
+- compaction itself does not rewrite, normalize, or validate the summary beyond the normal parse-and-degrade rules already defined for idle continuation
+
+This makes the summary file the primary recovery artifact after compaction without introducing a separate compaction-only file flow.
 
 ## Orchestrator And Delegation Contract
 
@@ -238,6 +282,21 @@ Required command-level behavior:
 - if delegated work discovers a blocker or changes the next step, that update must be written into the summary before the parent flow continues
 
 This keeps the plugin-side prompt enforcement and the command-side agent instructions aligned. The plugin reads and nudges; the agents are explicitly responsible for keeping the summary current.
+
+## Concurrent Sessions
+
+Concurrent `/autopilot` sessions may point at the same plan and therefore the same summary file.
+
+This design does not introduce locking or merge resolution.
+
+Defined behavior:
+
+- the summary file is shared plan-scoped state
+- concurrent writers follow a last-write-wins model
+- each continuation cycle should re-read the current summary from disk before building the next prompt
+- the system should recommend a single active `/autopilot` session per plan for predictable behavior
+
+Concurrent coordination beyond last-write-wins semantics is out of scope.
 
 ## Invalid Plan Recovery
 
@@ -278,8 +337,9 @@ Malformed summary data is a note-shape problem, not a plan-validity problem.
 
 When the plan reaches zero unchecked checklist items:
 
+- the active role should perform a final summary update before cleanup
 - `Enforcer` should stop injecting continuation prompts
-- the existing `/autopilot` command behavior remains responsible for removing the active plan marker file
+- the existing `/autopilot` command behavior remains responsible for removing the active plan marker file after that final summary update
 - the summary file should be left in place for inspection rather than deleted automatically
 
 Leaving the summary file behind keeps a record of how the plan was executed and matches the intent of plan-scoped tracking.
@@ -310,11 +370,20 @@ Does not own:
 
 Should continue to own:
 
-- active plan marker lookup
-- plan existence checks
-- checklist progress counts
+- the `TodoSource` adapter that reports incomplete-count context for plan-backed sessions
 
-It may grow a helper that returns the resolved active plan path and progress together, or that logic can live in a sibling helper as long as `Enforcer` does not absorb raw plan parsing details.
+`FilePlanSource` should call a sibling helper rather than growing its own path-resolution and signature-parsing API.
+
+### New Plan-State Helper
+
+Add a sibling helper, for example `plan-state.ts`, responsible for:
+
+- resolving the active plan marker to an absolute plan path
+- reading the plan contents
+- computing checklist progress and the first unchecked task
+- computing the current `planSignature`
+
+This helper becomes the single plan-introspection entry point used by both `FilePlanSource` and `Enforcer`.
 
 ### New Summary Helper
 
@@ -335,11 +404,12 @@ Minimum coverage:
 
 - valid active plan plus missing summary file creates the summary template
 - valid active plan plus valid summary file yields a prompt containing plan status, current task, next step, and blockers
+- plan content changes between idle checks and the next prompt includes an explicit reconcile instruction
 - malformed summary file still yields a continuation prompt and requests normalization
 - active plan becomes invalid and disables `autopilot` for the session
 - plan-backed mode does not consult session todos
 - existing abort debounce still prevents immediate reinjection after abort
-- existing compaction path still resumes with the new plan-backed prompt
+- after `session.compacted`, continuation re-reads the latest summary from disk and resumes with the plan-backed prompt
 
 Prompt-shape assertions are appropriate here because the main behavior change is the prompt content itself.
 
