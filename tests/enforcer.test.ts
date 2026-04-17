@@ -343,7 +343,7 @@ test("Enforcer re-reads the summary file after compaction before continuing", as
   }
 })
 
-test("Enforcer disables plan-backed continuation and clears the signature marker when the plan disappears", async () => {
+test("Enforcer stops quietly and clears the signature marker after successful plan cleanup removes the marker", async () => {
   const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
   const planPath = join(stateDir, "plan.md")
   writeFileSync(planPath, "- [ ] ship feature\n")
@@ -358,12 +358,41 @@ test("Enforcer disables plan-backed continuation and clears the signature marker
     enforcer.markAutopilotActive("session-1")
 
     await enforcer.onIdle("session-1")
-    rmSync(planPath)
+    rmSync(join(stateDir, "active-plan-session-1"))
     await enforcer.onIdle("session-1")
 
-    const promptInput = ctx.client.session.prompt.mock.calls[1][0]
-    expect(promptInput.body.parts[0].text).toContain("Autopilot stopped because the active plan for this session could not be resolved")
+    expect(ctx.client.session.prompt).toHaveBeenCalledTimes(1)
     expect(existsSync(join(stateDir, "active-plan-signature-session-1"))).toBe(false)
+  } finally {
+    process.env.AUTOPILOT_STATE_DIR = previous
+    rmSync(stateDir, { recursive: true, force: true })
+  }
+})
+
+test("Enforcer treats an invalid active plan marker as plan-backed and does not fall back to session todos", async () => {
+  const stateDir = mkdtempSync(join(tmpdir(), "autopilot-enforcer-"))
+  writeFileSync(join(stateDir, "active-plan-session-1"), join(stateDir, "missing-plan.md"))
+
+  const previous = process.env.AUTOPILOT_STATE_DIR
+  process.env.AUTOPILOT_STATE_DIR = stateDir
+
+  const todo = mock(async () => [
+    { id: "todo-1", content: "pending", status: "pending", priority: "high" },
+  ])
+  const prompt = mock(async () => true)
+
+  try {
+    const ctx = createCtx({ prompt, todo })
+    const enforcer = new Enforcer(ctx)
+    enforcer.markAutopilotActive("session-1")
+
+    await enforcer.onIdle("session-1")
+
+    expect(todo).not.toHaveBeenCalled()
+    expect(prompt).toHaveBeenCalledTimes(1)
+
+    const promptInput = prompt.mock.calls[0][0]
+    expect(promptInput.body.parts[0].text).toContain("Autopilot stopped because the active plan for this session could not be resolved")
   } finally {
     process.env.AUTOPILOT_STATE_DIR = previous
     rmSync(stateDir, { recursive: true, force: true })

@@ -1,7 +1,9 @@
+import { existsSync } from "node:fs"
 import type { AssistantMessage, Message, PluginInput } from "@opencode-ai/plugin"
 import { readPlanSummary } from "./summary-file"
 import {
   clearPersistedPlanSignature,
+  getActivePlanMarkerPath,
   readPersistedPlanSignature,
   readPlanState,
   writePersistedPlanSignature,
@@ -157,6 +159,9 @@ export class Enforcer {
       state.autopilotActive = false
       state.planBacked = false
       clearPersistedPlanSignature(sessionID)
+
+      if (!existsSync(getActivePlanMarkerPath(sessionID))) return
+
       await this.injectPrompt(sessionID, INVALID_PLAN_PROMPT)
       return
     }
@@ -218,7 +223,9 @@ export class Enforcer {
     }
 
     const planState = readPlanState(sessionID)
-    if (!planState && !state.planBacked) {
+    const hasActivePlanMarker = existsSync(getActivePlanMarkerPath(sessionID))
+
+    if (!planState && !state.planBacked && !hasActivePlanMarker) {
       await this.continueGeneric(sessionID)
       return
     }
