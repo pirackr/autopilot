@@ -18,6 +18,7 @@
   "scripts": {
     "prepare": "node ./scripts/install-commands.mjs",
     "postinstall": "node ./scripts/install-commands.mjs",
-    "test": "bun test"
+    "test": "bun test",
+    "test:podman-install": "RUN_PODMAN_INSTALL_TEST=1 bun test tests/podman-install.test.ts"
   }
 }
