@@ -8,8 +8,9 @@ const REQUIRED_SECTIONS = [
   "Next Step",
   "Blockers",
   "Recent Progress",
-  "Learnings",
 ] as const
+
+const OPTIONAL_SECTIONS = ["Learnings"] as const
 
 export type PlanSummary = {
   summaryPath: string
@@ -44,16 +45,13 @@ function buildInitialSummary(firstUncheckedTask: string | null): string {
     "## Recent Progress",
     "- summary initialized from active plan",
     "",
-    "## Learnings",
-    "- none yet",
-    "",
   ].join("\n")
 }
 
 function parseSections(content: string): Record<string, string> {
   const sections: Record<string, string> = {}
 
-  for (const section of REQUIRED_SECTIONS) {
+  for (const section of [...REQUIRED_SECTIONS, ...OPTIONAL_SECTIONS]) {
     const pattern = new RegExp(`## ${section}\\r?\\n([\\s\\S]*?)(?=\\r?\\n## |$)`)
     const match = content.match(pattern)
     if (match) sections[section] = match[1].trim()

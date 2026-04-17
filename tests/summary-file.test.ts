@@ -85,7 +85,7 @@ test("readPlanSummary flags stale tasks and missing sections without rewriting t
     const summary = readPlanSummary(planPath, "current task")
 
     expect(summary.requiresReconcile).toBe(true)
-    expect(summary.missingSections).toEqual(["Next Step", "Recent Progress", "Learnings"])
+    expect(summary.missingSections).toEqual(["Next Step", "Recent Progress"])
     expect(readFileSync(summaryPath, "utf-8")).toContain("outdated task")
   })
 })
@@ -115,9 +115,6 @@ test("readPlanSummary parses CRLF-formatted summary sections", async () => {
         "## Recent Progress",
         "- made progress",
         "",
-        "## Learnings",
-        "- learned something",
-        "",
       ].join("\r\n"),
     )
 
@@ -128,7 +125,7 @@ test("readPlanSummary parses CRLF-formatted summary sections", async () => {
       nextStep: "take the next step",
       blockers: "- none",
       recentProgress: "- made progress",
-      learnings: "- learned something",
+      learnings: "",
       missingSections: [],
       requiresReconcile: false,
     })
