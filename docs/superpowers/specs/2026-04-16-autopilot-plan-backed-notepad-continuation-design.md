@@ -146,6 +146,22 @@ Ownership is intentionally split:
 
 This preserves the user's preference for agent-owned notes while still giving the plugin a reliable file to read.
 
+## Agent Update Contract
+
+Summary maintenance is mandatory agent work, not optional hygiene.
+
+Required agent behavior:
+
+- after every completed task, update the summary before moving to the next task
+- after any meaningful progress that changes direction or context, update the summary before yielding control
+- keep `Current Task` aligned with the active task being worked
+- keep `Next Step` concrete and immediately actionable
+- keep `Blockers` accurate, including `- none` when there are no blockers
+- append or refresh `Recent Progress` so the latest completed work is visible after interruption or compaction
+- update `Learnings` when a constraint, convention, or gotcha would help the next continuation step
+
+The summary file must be treated as part of task completion, not as a best-effort note.
+
 ## First-Run Initialization
 
 If a valid plan exists but the summary file does not, the plugin should auto-create the summary file before injecting the next idle prompt.
@@ -171,7 +187,8 @@ Incomplete tasks remain in the active plan. Continue working on the next pending
 
 - Proceed without asking for permission.
 - Use the active plan as the source of truth.
-- Update the summary file after meaningful progress.
+- Update the summary file after every completed task and after any meaningful progress.
+- Refresh `Current Task`, `Next Step`, `Blockers`, and `Recent Progress` before yielding control.
 - If blockers changed, record them before stopping.
 
 [Plan Status: 3/8 completed, 5 remaining]
@@ -184,6 +201,7 @@ Prompt requirements:
 
 - include plan progress from the checklist count
 - include `Current Task`, `Next Step`, and `Blockers` every time they are available
+- explicitly require the agent to refresh the summary file before stopping, idling, or moving to the next task
 - tell the agent to normalize the summary file if required headings are missing
 - tell the agent to reconcile the summary with the current plan if the notes appear stale or mismatched
 - stay short and imperative, consistent with this plugin's current style
@@ -207,6 +225,19 @@ On `session.idle` for an `autopilot`-active session:
 11. inject that prompt into the session
 
 This preserves the current `Enforcer` lifecycle loop while replacing the generic continuation payload with plan-aware context.
+
+## Orchestrator And Delegation Contract
+
+The `/autopilot` command contract must explicitly require summary updates as part of normal orchestration.
+
+Required command-level behavior:
+
+- when `/autopilot` starts a plan-backed run, it must tell the active role where the summary file lives
+- before moving from one unchecked task to the next, the active role must update the summary file
+- when a task is delegated to `/autopilot-planner`, `/autopilot-research`, or `/autopilot-implementer`, the handoff must include the summary path and the requirement to update or reconcile the summary before returning control
+- if delegated work discovers a blocker or changes the next step, that update must be written into the summary before the parent flow continues
+
+This keeps the plugin-side prompt enforcement and the command-side agent instructions aligned. The plugin reads and nudges; the agents are explicitly responsible for keeping the summary current.
 
 ## Invalid Plan Recovery
 
