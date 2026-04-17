@@ -55,8 +55,10 @@ test("readPlanSummary creates a default summary file when missing", async () => 
     expect(summary.currentTask).toBe("write docs")
     expect(summary.nextStep).toBe("Inspect the current task and take the next concrete action.")
     expect(summary.blockers).toBe("- none")
+    expect(summary.learnings).toBe("- none yet")
     expect(summary.missingSections).toEqual([])
     expect(readFileSync(summary.summaryPath, "utf-8")).toContain("## Recent Progress")
+    expect(readFileSync(summary.summaryPath, "utf-8")).toContain("## Learnings")
   })
 })
 
@@ -85,7 +87,7 @@ test("readPlanSummary flags stale tasks and missing sections without rewriting t
     const summary = readPlanSummary(planPath, "current task")
 
     expect(summary.requiresReconcile).toBe(true)
-    expect(summary.missingSections).toEqual(["Next Step", "Recent Progress"])
+    expect(summary.missingSections).toEqual(["Next Step", "Recent Progress", "Learnings"])
     expect(readFileSync(summaryPath, "utf-8")).toContain("outdated task")
   })
 })
@@ -115,6 +117,9 @@ test("readPlanSummary parses CRLF-formatted summary sections", async () => {
         "## Recent Progress",
         "- made progress",
         "",
+        "## Learnings",
+        "- learned something",
+        "",
       ].join("\r\n"),
     )
 
@@ -125,7 +130,7 @@ test("readPlanSummary parses CRLF-formatted summary sections", async () => {
       nextStep: "take the next step",
       blockers: "- none",
       recentProgress: "- made progress",
-      learnings: "",
+      learnings: "- learned something",
       missingSections: [],
       requiresReconcile: false,
     })

@@ -54,7 +54,7 @@ function buildPlanContinuationPrompt(args: {
     "- Proceed without asking for permission.",
     "- Use the active plan as the source of truth.",
     "- Update the summary file after every completed task and after any meaningful progress.",
-    "- Refresh Current Task, Next Step, Blockers, and Recent Progress before yielding control.",
+    "- Refresh Current Task, Next Step, Blockers, Recent Progress, and Learnings before yielding control.",
   ]
 
   if (args.shouldReconcile) {

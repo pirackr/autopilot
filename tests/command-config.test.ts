@@ -97,6 +97,7 @@ test("registerAutopilotCommands includes the plan summary workflow in the main c
 
   expect(config.command?.autopilot?.template).toContain("plan-summaries")
   expect(config.command?.autopilot?.template).toContain("Current Task")
+  expect(config.command?.autopilot?.template).toContain("Learnings")
   expect(config.command?.autopilot?.template).toContain(
     "active-plan-signature-$AUTOPILOT_SESSION_ID",
   )

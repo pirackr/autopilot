@@ -840,7 +840,7 @@ git commit -m "feat: add plan-backed autopilot continuation"
 - Modify: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/tests/command-config.test.ts`
 - Modify: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/README.md`
 
-- [ ] **Step 1: Extend the command-config test with the new summary and cleanup requirements**
+- [x] **Step 1: Extend the command-config test with the new summary and cleanup requirements**
 
 ```ts
 test("registerAutopilotCommands includes the plan summary workflow in the main command", () => {
@@ -854,12 +854,12 @@ test("registerAutopilotCommands includes the plan summary workflow in the main c
 })
 ```
 
-- [ ] **Step 2: Run the command-config test to verify it fails**
+- [x] **Step 2: Run the command-config test to verify it fails**
 
 Run: `bun test tests/command-config.test.ts`
 Expected: FAIL because `.opencode/commands/autopilot.md` does not yet mention summary-file maintenance or the signature marker cleanup
 
-- [ ] **Step 3: Update `.opencode/commands/autopilot.md` and `README.md`**
+- [x] **Step 3: Update `.opencode/commands/autopilot.md` and `README.md`**
 
 ````md
 Required behavior:
@@ -914,12 +914,12 @@ Important files:
 Set `AUTOPILOT_STATE_DIR` to override that location.
 ````
 
-- [ ] **Step 4: Run the command and docs tests to verify they pass**
+- [x] **Step 4: Run the command and docs tests to verify they pass**
 
 Run: `bun test tests/command-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit the command and README updates**
+- [x] **Step 5: Commit the command and README updates**
 
 ```bash
 git add .opencode/commands/autopilot.md tests/command-config.test.ts README.md
@@ -935,22 +935,22 @@ git commit -m "docs: describe autopilot plan summary workflow"
 - Test: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/tests/enforcer.test.ts`
 - Test: `/Users/hhnguyen/Working/github.com/pirackr/autopilot/tests/command-config.test.ts`
 
-- [ ] **Step 1: Run the focused regression suite**
+- [x] **Step 1: Run the focused regression suite**
 
 Run: `bun test tests/plan-state.test.ts tests/summary-file.test.ts tests/file-plan.test.ts tests/enforcer.test.ts tests/command-config.test.ts`
 Expected: PASS
 
-- [ ] **Step 2: Run the full repository test suite**
+- [x] **Step 2: Run the full repository test suite**
 
 Run: `bun test`
 Expected: PASS
 
-- [ ] **Step 3: Check the final worktree state**
+- [x] **Step 3: Check the final worktree state**
 
 Run: `git status --short`
 Expected: only the files from Tasks 1-4 are modified and the worktree is otherwise clean
 
-- [ ] **Step 4: Record the verification result in the summary before handing off**
+- [x] **Step 4: Record the verification result in the summary before handing off**
 
 ```md
 ## Recent Progress

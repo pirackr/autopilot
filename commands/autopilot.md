@@ -42,6 +42,7 @@ $AUTOPILOT_STATE_DIR/plan-summaries/<lowercase-basename-with-non-alnum-runs-repl
 - `## Next Step`
 - `## Blockers`
 - `## Recent Progress`
+- `## Learnings`
 
 7. Read the plan file and orchestrate the unchecked tasks in order.
 8. For each task, choose the right autopilot subagent explicitly:

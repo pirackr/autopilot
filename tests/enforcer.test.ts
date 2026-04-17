@@ -250,6 +250,9 @@ test("Enforcer injects a plan-backed continuation prompt and skips session todos
 
     const promptInput = ctx.client.session.prompt.mock.calls[0][0]
     expect(promptInput.body.parts[0].text).toContain("[Plan Status: 1/2 completed, 1 remaining]")
+    expect(promptInput.body.parts[0].text).toContain(
+      "Refresh Current Task, Next Step, Blockers, Recent Progress, and Learnings before yielding control.",
+    )
     expect(promptInput.body.parts[0].text).toContain("[Current Task: ship feature]")
     expect(promptInput.body.parts[0].text).toContain("[Next Step: update the final implementation branch]")
   } finally {
